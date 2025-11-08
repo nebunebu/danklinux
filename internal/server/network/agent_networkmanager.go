@@ -262,6 +262,35 @@ func (a *SecretAgent) GetSecrets(
 	if err != nil {
 		log.Warnf("[SecretAgent] Prompt failed or cancelled: %v", err)
 
+		// Clear connecting state immediately on cancellation
+		if a.backend != nil {
+			a.backend.stateMutex.Lock()
+			wasConnecting := a.backend.state.IsConnecting
+			wasConnectingVPN := a.backend.state.IsConnectingVPN
+			cancelledSSID := a.backend.state.ConnectingSSID
+			if wasConnecting || wasConnectingVPN {
+				log.Infof("[SecretAgent] Clearing connecting state due to cancelled prompt")
+				a.backend.state.IsConnecting = false
+				a.backend.state.ConnectingSSID = ""
+				a.backend.state.IsConnectingVPN = false
+				a.backend.state.ConnectingVPNUUID = ""
+			}
+			a.backend.stateMutex.Unlock()
+
+			// If this was a WiFi connection that was just cancelled, remove the connection profile
+			// (it was created with AddConnection but activation was cancelled)
+			if wasConnecting && cancelledSSID != "" && connType == "802-11-wireless" {
+				log.Infof("[SecretAgent] Removing connection profile for cancelled WiFi connection: %s", cancelledSSID)
+				if err := a.backend.ForgetWiFiNetwork(cancelledSSID); err != nil {
+					log.Warnf("[SecretAgent] Failed to remove cancelled connection profile: %v", err)
+				}
+			}
+
+			if (wasConnecting || wasConnectingVPN) && a.backend.onStateChange != nil {
+				a.backend.onStateChange()
+			}
+		}
+
 		if reply.Cancel || errors.Is(err, errdefs.ErrSecretPromptCancelled) {
 			return nil, dbus.NewError("org.freedesktop.NetworkManager.SecretAgent.Error.UserCanceled", nil)
 		}

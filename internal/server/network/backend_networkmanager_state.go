@@ -229,6 +229,16 @@ func (b *NetworkManagerBackend) updateWiFiState() error {
 			b.state.ConnectingSSID = ""
 			b.state.LastError = reasonCode
 
+			// If user cancelled, delete the connection profile that was just created
+			if reasonCode == errdefs.ErrUserCanceled {
+				log.Infof("[updateWiFiState] User cancelled authentication, removing connection profile for %s", connectingSSID)
+				b.stateMutex.Unlock()
+				if err := b.ForgetWiFiNetwork(connectingSSID); err != nil {
+					log.Warnf("[updateWiFiState] Failed to remove cancelled connection: %v", err)
+				}
+				b.stateMutex.Lock()
+			}
+
 			b.failedMutex.Lock()
 			b.lastFailedSSID = connectingSSID
 			b.lastFailedTime = time.Now().Unix()
