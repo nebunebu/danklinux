@@ -138,6 +138,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.updateDependencyReviewState(msg)
 	case StateGentooUseFlags:
 		return m.updateGentooUseFlagsState(msg)
+	case StateGentooGCCCheck:
+		return m.updateGentooGCCCheckState(msg)
 	case StateAuthMethodChoice:
 		return m.updateAuthMethodChoiceState(msg)
 	case StateFingerprintAuth:
@@ -180,6 +182,8 @@ func (m Model) View() string {
 		return m.viewDependencyReview()
 	case StateGentooUseFlags:
 		return m.viewGentooUseFlags()
+	case StateGentooGCCCheck:
+		return m.viewGentooGCCCheck()
 	case StateAuthMethodChoice:
 		return m.viewAuthMethodChoice()
 	case StateFingerprintAuth:

@@ -46,9 +46,27 @@ func (m Model) viewGentooUseFlags() string {
 }
 
 func (m Model) updateGentooUseFlagsState(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if gccMsg, ok := msg.(gccVersionCheckMsg); ok {
+		if gccMsg.err != nil || gccMsg.major < 15 {
+			m.state = StateGentooGCCCheck
+			return m, nil
+		}
+		if checkFingerprintEnabled() {
+			m.state = StateAuthMethodChoice
+			m.selectedConfig = 0
+		} else {
+			m.state = StatePasswordPrompt
+			m.passwordInput.Focus()
+		}
+		return m, nil
+	}
+
 	if keyMsg, ok := msg.(tea.KeyMsg); ok {
 		switch keyMsg.String() {
 		case "enter":
+			if m.selectedWM == 1 {
+				return m, m.checkGCCVersion()
+			}
 			if checkFingerprintEnabled() {
 				m.state = StateAuthMethodChoice
 				m.selectedConfig = 0

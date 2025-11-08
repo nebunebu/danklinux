@@ -10,6 +10,7 @@ const (
 	StateDetectingDeps
 	StateDependencyReview
 	StateGentooUseFlags
+	StateGentooGCCCheck
 	StateAuthMethodChoice
 	StateFingerprintAuth
 	StatePasswordPrompt
