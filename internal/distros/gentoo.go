@@ -142,7 +142,7 @@ func (g *GentooDistribution) detectPolkitAgent() deps.Dependency {
 
 func (g *GentooDistribution) detectXwaylandSatellite() deps.Dependency {
 	status := deps.StatusMissing
-	if g.commandExists("xwayland-satellite") {
+	if g.packageInstalled("gui-apps/xwayland-satellite") {
 		status = deps.StatusInstalled
 	}
 
@@ -213,7 +213,7 @@ func (g *GentooDistribution) GetPackageMappingWithVariants(wm deps.WindowManager
 		packages["jq"] = PackageMapping{Name: "app-misc/jq", Repository: RepoTypeSystem}
 	case deps.WindowManagerNiri:
 		packages["niri"] = g.getNiriMapping(variants["niri"])
-		packages["xwayland-satellite"] = PackageMapping{Name: "xwayland-satellite", Repository: RepoTypeManual, BuildFunc: "installXwaylandSatellite"}
+		packages["xwayland-satellite"] = PackageMapping{Name: "gui-apps/xwayland-satellite", Repository: RepoTypeGURU, AcceptKeywords: archKeyword}
 	}
 
 	return packages
